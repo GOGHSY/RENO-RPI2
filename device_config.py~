@@ -1,0 +1,40 @@
+"""
+device_config.py
+----------------
+Atlas I2C device initialization for the UNR Water Treatment system.
+Import this module to get pre-initialized device objects.
+"""
+
+from AtlasI2C import AtlasI2C
+
+
+def _init_device(address: int) -> AtlasI2C:
+    """Query a device for its module type and name, then return a fully initialized AtlasI2C instance."""
+    dev = AtlasI2C()
+    dev.set_i2c_address(address)
+    response = dev.query("I")
+    moduletype = response.split(",")[1]
+    name = dev.query("name,?").split(",")[1]
+    return AtlasI2C(address=address, moduletype=moduletype, name=name)
+
+
+# ── pH Probes ────────────────────────────────────────────────────────────────
+device_pH1  = _init_device(99)   # Pre Rapid Mix
+device_pH2  = _init_device(96)   # Post Flocculation
+device_pH3  = _init_device(97)   # Post Sedimentation
+
+# ── ORP ───────────────�──────────────────────────────────────────────────────
+device_ORP  = _init_device(98)   # Pre Rapid Mix
+
+# ── Conductivity ─────────────────────────────────────────────────────────────
+device_EC   = _init_device(100)  # Post Lime Dose
+
+# ── Temperature (RTD) ────────────────────────────────────────────────────────
+device_RTD1 = _init_device(102)  # Pre Rapid Mix
+device_RTD2 = _init_device(104)  # Pre Rapid Mix
+device_RTD3 = _init_device(105)  # Post Floc
+device_RTD4 = _init_device(106)  # Effluent
+
+# ── Pumps ──────────────────────────────────────────────────�──────────────────
+device_Pump1 = _init_device(109)  # Alum Dosing
+device_Pump2 = _init_device(110)  # Lime Dosing└

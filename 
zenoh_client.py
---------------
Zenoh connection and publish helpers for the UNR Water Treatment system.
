@@ -1,0 +1,19 @@
+import jsonfrom datetime import datetimeimport zenoh# ── Zenoh config ──────────────────────────────────────────────────────────────KEY_EXPR = "reno/water/treatment/010"# ── Session setup ─────────────────────────────────────────────────────────────try:    session = zenoh.open()    print("Zenoh connected successfully")except Exception as e:    print(f"Warning: Zenoh connection failed: {e}")    session = Nonedef publish_readings(pH: float, orp: float, temperature: float, pump1: str) -> None:    """Serialize sensor readings to JSON and publish via Zenoh."""    if session is None:        return    data = {        "timestamp":   str(datetime.now()),
+        "ph":          pH,
+        "orp":         orp,
+        "temperature": temperature,
+        "pump1":       pump1,
+    }
+
+    session.put(KEY_EXPR, json.dumps(data))
+    print("Zenoh published:", data)
+
+
+def publish_full_readings(payload: dict) -> None:
+    """Publish arbitrary dict via Zenoh."""
+    if session is None:
+        return
+
+    payload["timestamp"] = str(datetime.now())
+    session.put(KEY_EXPR, json.dumps(payload))
+    print("Zenoh published:", payload)
