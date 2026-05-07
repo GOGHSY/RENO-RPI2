@@ -10,8 +10,8 @@ WorkingDirectory=/home/pi/MQTTsystem
 ExecStart=/usr/bin/python3 /home/pi/MQTTsystem/main.py
 Restart=always
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/home/pi/MQTTsystem/wtp-rpi2.log
+StandardError=append:/home/pi/MQTTsystem/wtp-rpi2.log
 
 [Install]
 WantedBy=multi-user.target
