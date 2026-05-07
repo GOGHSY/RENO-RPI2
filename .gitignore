@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.py~
+*.pw~
+*.px~
+*.pz~
