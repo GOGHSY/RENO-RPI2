@@ -49,3 +49,10 @@ def publish_full_readings(payload: dict) -> None:
     payload["timestamp"] = str(datetime.now())
     _session.put(KEY_EXPR, json.dumps(payload))
     print("Zenoh published:", payload)
+
+
+def subscribe_alum_pump(callback) -> object:
+    """Subscribe to alum pump rate commands published by RPI1."""
+    if _session is None:
+        return None
+    return _session.declare_subscriber("reno/water/alum/pump", callback)

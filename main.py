@@ -1,3 +1,4 @@
+import json
 import time
 
 from sensors import(
@@ -8,14 +9,31 @@ from sensors import(
         )
 from pumps import dispense_alum,balance_pH,alum_pump_state,stop_pumps
 from logger import new_log_file, log_readings
-from zenoh_client import publish_full_readings as publish_data
+from zenoh_client import publish_full_readings as publish_data, subscribe_alum_pump
+from device_config import device_Pump1
+
+
+def _on_alum_pump(sample):
+    try:
+        data = json.loads(str(sample.payload))
+        ml_per_min = float(data.get("ml_per_min", 0))
+        if ml_per_min >= 0.5:
+            device_Pump1.write(f"DC,{ml_per_min},*")
+            print(f"Alum pump: DC,{ml_per_min},* mL/min")
+        else:
+            device_Pump1.write("x")
+            print("Alum pump: stopped (flow too low)")
+    except Exception as e:
+        print(f"Alum pump command error: {e}")
 
 LOOP_DELAY = 2
 
 def run() -> None:
     log_file = new_log_file()
 
-    dispense_alum()
+    # Subscribe to alum pump rate from RPI1 (flow-proportional dosing)
+    _alum_sub = subscribe_alum_pump(_on_alum_pump)
+    print("Subscribed to alum pump commands from RPI1")
 
     try:
         while True:
