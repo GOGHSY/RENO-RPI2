@@ -4,6 +4,7 @@ logger.py
 CSV data-logging helpers for the UNR Water Treatment system.
 """
 
+import os
 from datetime import datetime
 
 LOG_DIR     = "/home/pi/Raspberry-Pi-sample-code/logs"
@@ -19,7 +20,9 @@ LOG_HEADERS = [
 
 def new_log_file() -> str:
     """Return a timestamped CSV file path and write the header row."""
-    path = f"{LOG_DIR}/{datetime.now()}-UNRWaterTreatment.csv"
+    os.makedirs(LOG_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = f"{LOG_DIR}/{timestamp}-UNRWaterTreatment.csv"
     _write_line(path, LOG_HEADERS)
     return path
 

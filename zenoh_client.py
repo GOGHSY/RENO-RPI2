@@ -24,23 +24,6 @@ except Exception as e:
     _session = None
 
 
-def publish_readings(pH: float, orp: float, temperature: float, pump1: str) -> None:
-    """Serialize sensor readings to JSON and publish via Zenoh."""
-    if _session is None:
-        return
-
-    data = {
-        "timestmp":   str(datetime.now()),
-        "ph":          pH,
-        "orp":         orp,
-        "temperature": temperature,
-        "pump1":       pump1,
-    }
-
-    _session.put(KEY_EXPR, json.dumps(data))
-    print("Zenoh published:", data)
-
-
 def publish_full_readings(payload: dict) -> None:
     """Publish arbitrary dict via Zenoh."""
     if _session is None:

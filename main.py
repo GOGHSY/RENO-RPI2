@@ -1,37 +1,33 @@
 import json
 import time
 
-from sensors import(
-        read_pH1, read_pH2,read_pH3,
-        read_ORP,read_EC,
-        read_RTD1,read_RTD2,read_RTD3,read_RTD4,
-        read_Pump1,read_Pump2,
-        )
-from pumps import dispense_alum,balance_pH,alum_pump_state,stop_pumps
+from sensors import (
+    read_pH1, read_pH2, read_pH3,
+    read_ORP, read_EC,
+    read_RTD1, read_RTD2, read_RTD3, read_RTD4,
+    read_Pump1, read_Pump2,
+)
+from pumps import balance_pH, alum_pump_state, set_alum_pump_rate, stop_pumps
 from logger import new_log_file, log_readings
 from zenoh_client import publish_full_readings as publish_data, subscribe_alum_pump
-from device_config import device_Pump1
+
+LOOP_DELAY = 2
 
 
 def _on_alum_pump(sample):
+    """Zenoh callback: receives flow-rate commands from RPi1 (runs on Zenoh thread)."""
     try:
         data = json.loads(str(sample.payload))
         ml_per_min = float(data.get("ml_per_min", 0))
-        if ml_per_min >= 0.5:
-            device_Pump1.write(f"DC,{ml_per_min},*")
-            print(f"Alum pump: DC,{ml_per_min},* mL/min")
-        else:
-            device_Pump1.write("x")
-            print("Alum pump: stopped (flow too low)")
+        set_alum_pump_rate(ml_per_min)
+        print(f"Alum pump: RPi1 commanded {ml_per_min:.2f} mL/min")
     except Exception as e:
         print(f"Alum pump command error: {e}")
 
-LOOP_DELAY = 2
 
 def run() -> None:
     log_file = new_log_file()
 
-    # Subscribe to alum pump rate from RPI1 (flow-proportional dosing)
     _alum_sub = subscribe_alum_pump(_on_alum_pump)
     print("Subscribed to alum pump commands from RPI1")
 
@@ -41,7 +37,8 @@ def run() -> None:
             pH2 = read_pH2()
             pH3 = read_pH3()
 
-            balance_pH()
+            # Pass the already-read pH3 value — avoids a redundant I2C read
+            balance_pH(float(pH3))
 
             RTD1 = read_RTD1()
             RTD2 = read_RTD2()
@@ -51,11 +48,10 @@ def run() -> None:
             EC   = read_EC()
             P1   = read_Pump1()
             P2   = read_Pump2()
- 
-            # ── Alum pump state for MQTT (pH1-based, non-destructive) ─────────
+
+            # Local fallback pump state (also writes to pump if RPi1 hasn't commanded)
             pump1_state = alum_pump_state(float(pH1))
- 
-            # ── Build shared payload ──────────────────────────────────────────
+
             readings = {
                 "ORP":   ORP,
                 "pH1":   pH1,  "RTD1": RTD1,
@@ -64,24 +60,20 @@ def run() -> None:
                 "EC":    EC,   "RTD4": RTD4,
                 "Pump1": P1,
                 "Pump2": P2,
-                # MQTT extras
-                "temperature": RTD1,   # primary temperature for remote dashboard
+                "temperature": RTD1,   # alias for remote dashboard
                 "pump1_state": pump1_state,
             }
- 
-            # ── Log to CSV ────────────────────────────────────────────────────
+
             log_readings(log_file, readings)
- 
-            # ── Publish to MQTT ───────────────────────────────────────────────
             publish_data(readings)
- 
+
             time.sleep(LOOP_DELAY)
- 
+
     except KeyboardInterrupt:
         print("\nCtrl-C pressed – shutting down.")
         stop_pumps()
- 
- 
+
+
 if __name__ == "__main__":
     run()
 

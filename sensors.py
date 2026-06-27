@@ -21,12 +21,16 @@ def _read(device, label: str) -> str:
     """Generic read helper: write 'R', wait, parse, print, and return the value."""
     device.write("R")
     time.sleep(READ_DELAY)
-    reading = device.read().split(": ")[1].replace('\x00', '').strip()
+    raw = device.read()
+    if not raw.startswith("Success"):
+        print(f"{label} ERROR: {raw}")
+        return "ERROR"
+    reading = raw.split(": ")[1].replace('\x00', '').strip()
     print(f"{label} = {reading}")
     return reading
 
 
-# ── pH ───────────────────────────────────────────────────────────────��───────
+# ── pH ───────────────────────────────────────────────────────────────��───────
 def read_pH1()  -> str: return _read(device_pH1,  "pH1  (Pre Rapid Mix)")
 def read_pH2()  -> str: return _read(device_pH2,  "pH2  (Post Floc)")
 def read_pH3()  -> str: return _read(device_pH3,  "pH3  (Post Sed)")
