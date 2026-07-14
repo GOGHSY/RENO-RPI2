@@ -7,7 +7,7 @@ CSV data-logging helpers for the UNR Water Treatment system.
 import os
 from datetime import datetime
 
-LOG_DIR     = "/home/pi/RENO-RPI2/logs"
+LOG_DIR     = "/home/raspberrypi/RENO-RPI2/logs"
 LOG_HEADERS = [
     "Date/Time", "ORP",
     "pH1", "RTD1",
