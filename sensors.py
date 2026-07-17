@@ -13,6 +13,7 @@ from device_config import (
     device_RTD1, device_RTD2, device_RTD3, device_RTD4,
     device_Pump1, device_Pump2,
 )
+from pumps import pump1_lock
 
 READ_DELAY = 1.5  # seconds – minimum settling time for Atlas EZO readings
 
@@ -48,5 +49,7 @@ def read_RTD3() -> str: return _read(device_RTD3, "RTD3 (Post Floc)")
 def read_RTD4() -> str: return _read(device_RTD4, "RTD4 (Effluent)")
 
 # ── Pumps ─────────────────────────────────────────────────────────────────────
-def read_Pump1() -> str: return _read(device_Pump1, "Alum Pump")
+def read_Pump1() -> str:
+    with pump1_lock:  # device_Pump1 is also written from the Zenoh command thread
+        return _read(device_Pump1, "Alum Pump")
 def read_Pump2() -> str: return _read(device_Pump2, "Lime Pump")
