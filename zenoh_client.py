@@ -10,7 +10,7 @@ import zenoh
 
 # ── Zenoh config ──────────────────────────────────────────────────────────────
 KEY_EXPR    = "reno/water/treatment/010"
-RPI1_ROUTER = "tcp/100.114.164.70:7447"   # zenohd running on RPi1
+RPI1_ROUTER = "tcp/100.104.48.38:7447"   # zenohd running on RPi1
 
 # ── Session setup ─────────────────────────────────────────────────────────────
 _session = None
